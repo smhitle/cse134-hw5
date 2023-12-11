@@ -4,12 +4,21 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Weather Widget</title>
+        <style>
+            a {
+                position: absolute;
+                right: 0;
+                top: 0;
+                font-size: large;
+            }
+        </style>
     </head>
     <body>
         <h1>Current Weather</h1>
         <weather-widget>
             Current Weather Conditions Unavailable
         </weather-widget>
+        <a href="rating.html">Link to rating widget</a>
 
         <script>
             window.customElements.define("weather-widget", class extends HTMLElement {

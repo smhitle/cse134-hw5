@@ -8,6 +8,12 @@
             :root{
                 --hovered-star: yellow;
             }
+            a {
+                position: absolute;
+                right: 0;
+                top: 0;
+                font-size: large;
+            }
         </style>
     </head>
     <body>
@@ -21,6 +27,7 @@
                 <button type="submit">Submit</button>
             </form>
         </rating-widget>
+        <a href="weather.html">Link to weather widget</a>
 
         <script>
             window.customElements.define('rating-widget', class extends HTMLElement {
