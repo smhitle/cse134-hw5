@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rating Widget</title>
+        <style>
+            :root{
+                --hovered-star: yellow;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Rating Widget</h1>
+        <rating-widget>
+            <form action="https://httpbin.org/post" method="POST" onsubmit="submit">
+                <label for="rating">How satisfied are you?</label>
+                <input type="hidden" name="question" value="How satisfied are you?">
+                <input type="hidden" name="sentBy" value="HTML">
+                <input type="number" id="rating" name="rating" min="1" max="5" value="0" required>
+                <button type="submit">Submit</button>
+            </form>
+        </rating-widget>
+
+        <script>
+            window.customElements.define('rating-widget', class extends HTMLElement {
+                constructor() {
+                    super();
+
+                    this.attachShadow({mode: "open"});
+                    this.rating = 0;
+                    this.max = 5;
+                }
+
+                connectedCallback() {
+                    console.log("Widget connected");
+                    this.shadowRoot.innerHTML = `
+                    <style>
+                        input {
+                            display: none;
+                        }
+                        .star {
+                            font-size: 2em;
+                        }
+                        .hide-form {
+                            display: none;
+                        }
+                        .hovered {
+                            color: var(--hovered-star, yellow);
+                        }
+                    </style>
+
+                    <form id="rating-form" action="https://httpbin.org/post" method="POST">
+                        <label for="star1" class="star">&starf;</label>
+                        <label for="star2" class="star">&starf;</label>
+                        <label for="star3" class="star">&starf;</label>
+                        <label for="star4" class="star">&starf;</label>
+                        <label for="star5" class="star">&starf;</label>
+
+                        <input type="hidden" name="question" value="How satisfied are you?">
+                        <input type="hidden" name="sentBy" value="JavaScript">                    
+                    </form>
+
+                    <p id="message"></p>
+                    `;
+
+                    let stars = Array.from(this.shadowRoot.querySelectorAll(".star"));
+                    let form = this.shadowRoot.querySelector("#rating-form");
+
+                    form.addEventListener("submit", this.submit.bind(this))
+
+                    stars.forEach(e => {
+                        e.addEventListener("click", this.starClick.bind(this));
+                        e.addEventListener("mouseover", this.starHover.bind(this));
+                        e.addEventListener("mouseleave", this.starUnhover.bind(this))
+                    });
+
+                }
+
+                submit(e) {
+                    e.preventDefault();
+                    
+                    let form = this.shadowRoot.querySelector("#rating-form");
+
+                    form.classList.toggle("hide-form");
+
+                    let formData = new FormData(form);
+                    formData.append("rating", this.rating);
+
+                    fetch(form.action, {
+                        method: "POST",
+                        headers: {"X-Sent-By": "JavaScript"},
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => console.log(data))
+                    .catch(err => console.log(err))
+                }
+
+                starClick(e) {
+                    let el = e.target;
+                    let num = el.htmlFor[el.htmlFor.length - 1];
+                    let p = this.shadowRoot.querySelector("#message");
+                    let form = this.shadowRoot.querySelector("#rating-form")
+                    this.rating = num;
+
+                    if (this.rating / this.max >= 0.8){
+                        p.innerHTML = `Thanks for the ${this.rating} rating!`
+                    } else {
+                        p.innerHTML = `Thanks for your feedback of ${this.rating} stars. We'll try to do better!`
+                    }
+
+                    form.dispatchEvent(new Event("submit"))
+                }
+
+                starHover(e) {
+                    let el = e.target;
+                    let num = el.htmlFor[el.htmlFor.length - 1];
+                    
+                    for (let i = 1; i <= num; i++){
+                        let star = this.shadowRoot.querySelector(`label[for="star${i}"]`);
+                        star.classList.add("hovered")
+                    }
+                }
+
+                starUnhover(e) {
+                    let stars = Array.from(this.shadowRoot.querySelectorAll(".star"));
+
+                    stars.forEach(e => {
+                        e.classList.remove("hovered")
+                    });
+                }
+
+                disconnectedCallback(){
+                    console.log("Widget disconnected");
+                }
+            });
+        </script>
+    </body>
+</html>

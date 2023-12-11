@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Weather Widget</title>
+    </head>
+    <body>
+        <h1>Current Weather</h1>
+        <weather-widget>
+            Current Weather Conditions Unavailable
+        </weather-widget>
+
+        <script>
+            window.customElements.define("weather-widget", class extends HTMLElement {
+                constructor() {
+                    super()
+
+                    this.attachShadow({mode: "open"})
+                    this.temperatureUnit;
+                    this.forecast;
+                    this.temperature;
+                    this.icon;
+                }
+
+                connectedCallback() {
+                    console.log("Widget connected")
+                    let root = this.shadowRoot;
+
+                    root.innerHTML = `
+                        <style>
+                            #weather-box {
+                                display: flex;
+                                flex-flow: row wrap;
+                                align-items: center;
+                            }
+                            #forecast {
+                                padding-left: 1em;
+                            }
+                        </style>
+                        <div id="weather-box">
+                            <img src="" height="50px" width="50px" id="weather-icon" alt="Weather icon" loading="lazy">
+                            <p id="forecast"></p>
+                        </div>
+                    `
+                    
+                    if (root.isConnected){
+                        this.getComponents();
+                    }
+                }
+
+                getComponents() {
+
+                    fetch("https://api.weather.gov/points/32.8328%2C-117.2713")
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(err => console.log(err))
+
+                    fetch("https://api.weather.gov/gridpoints/SGX/53,20/forecast")
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log(data);
+                        this.temperatureUnit = data.properties.periods[0].temperatureUnit;
+                        this.forecast = data.properties.periods[0].shortForecast;
+                        this.temperature = data.properties.periods[0].temperature;
+                        this.icon = data.properties.periods[0].icon;
+                    })
+                    .then(e => this.update())
+                    .catch(err => console.log(err))
+                }
+
+                update() {
+                    let root = this.shadowRoot;
+                    let img = root.querySelector("#weather-icon");
+                    let p = root.querySelector("#forecast");
+
+                    img.src = this.icon;
+                    p.innerHTML = `${this.forecast} ${this.temperature} ${this.temperatureUnit}&deg`
+                }
+
+                disconnectedCallback(){
+                    console.log("Widget disconnected")
+                }
+            });
+        </script>
+    </body>
+</html>
